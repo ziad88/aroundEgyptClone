@@ -9,6 +9,8 @@ import UIKit
 
 class customCollectionViewCell: UICollectionViewCell {
     
+    var dataManager = DataManager()
+    
     static let identifier = "customCollectionViewCell"
     
     private let imageView: UIImageView = {
@@ -21,12 +23,26 @@ class customCollectionViewCell: UICollectionViewCell {
         return title
     }()
     
-    func configure(with cellImageName: String, label: String) {
+    private let likesCount: UILabel = {
+        let likesCount = UILabel()
+        return likesCount
+    }()
+    
+    private let likeButton: UIButton = {
+        let likeButton = UIButton()
+        likeButton.setImage(UIImage(systemName: "heart.fill"), for: .normal)
+        likeButton.tintColor = .systemRed
+        return likeButton
+    }()
+    
+    func configure(with cellImageName: String, label: String, likes: Int) {
         imageView.downloaded(from: cellImageName)
         imageView.clipsToBounds = true
-        imageView.contentMode = .scaleToFill
+        imageView.contentMode = .scaleAspectFill
         imageView.layer.cornerRadius = 15.0
         title.text = label
+        likesCount.text = String(likes)
+        likesCount.textAlignment = .right
     }
     
     
@@ -34,6 +50,8 @@ class customCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
         contentView.addSubview(imageView)
         contentView.addSubview(title)
+        contentView.addSubview(likeButton)
+        contentView.addSubview(likesCount)
     }
     
     required init?(coder: NSCoder) {
@@ -53,16 +71,41 @@ class customCollectionViewCell: UICollectionViewCell {
         
         NSLayoutConstraint.activate([
             title.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 10),
-            title.widthAnchor.constraint(equalTo: self.contentView.widthAnchor),
+            title.widthAnchor.constraint(equalToConstant: 253),
             title.heightAnchor.constraint(equalToConstant: 20)
         ])
+        
+        
+        likeButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            likeButton.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 10),
+            likeButton.widthAnchor.constraint(equalToConstant: 40),
+            likeButton.heightAnchor.constraint(equalToConstant: 20),
+            likeButton.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor)
+        ])
+        
+        likeButton.addTarget(self, action: #selector(likeButtonPressed), for: .touchUpInside)
+        
+        likesCount.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            likesCount.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 10),
+            likesCount.widthAnchor.constraint(equalToConstant: 60),
+            likesCount.heightAnchor.constraint(equalToConstant: 20),
+            likesCount.trailingAnchor.constraint(equalTo: likeButton.leadingAnchor)
+        ])
+        
+    }
+    
+    @objc func likeButtonPressed() {
         
     }
 }
 
+
 extension UIImageView {
-    func downloaded(from url: URL, contentMode mode: ContentMode = .scaleAspectFit) {
-        contentMode = mode
+    func downloaded(from url: URL) {
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard
                 let httpURLResponse = response as? HTTPURLResponse, httpURLResponse.statusCode == 200,
@@ -75,8 +118,8 @@ extension UIImageView {
             }
         }.resume()
     }
-    func downloaded(from link: String, contentMode mode: ContentMode = .scaleAspectFit) {
+    func downloaded(from link: String) {
         guard let url = URL(string: link) else { return }
-        downloaded(from: url, contentMode: mode)
+        downloaded(from: url)
     }
 }

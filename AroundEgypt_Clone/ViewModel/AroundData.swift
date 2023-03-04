@@ -12,4 +12,5 @@ struct AroundData {
     let title: String
     let cover_photo: String
     let likes_no: Int
+    let description: String
 }

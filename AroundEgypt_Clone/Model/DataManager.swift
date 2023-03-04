@@ -8,7 +8,9 @@
 import Foundation
 
 protocol DataManagerDelegate {
-    func didUpdate(_ DataManager: DataManager, data: [AroundData])
+    func didUpdateReco(_ DataManager: DataManager, data: [AroundData])
+    func didUpdateRecent(_ DataManager: DataManager, data: [AroundData])
+    func didUpdateSingleEx(_ DataManager: DataManager, data: AroundData)
     func didFailWithError(error: Error)
 }
 struct DataManager {
@@ -16,20 +18,32 @@ struct DataManager {
     let url = "https://aroundegypt.34ml.com/api/v2"
     var delegate: DataManagerDelegate?
     
+    func PostLike(id: String) {
+        let urlString = "\(url)/experiences/{\(id)}/like"
+        postRequest(with: urlString)
+    }
     
     func GetRecommendedExperiences() {
         let urlString = "\(url)/experiences?filter[recommended]=true"
-        //let urlString = "https://aroundegypt.34ml.com/api/v2/experiences?filter[recommended]=true"
-        performRequest(with: urlString)
+        performRequest(with: urlString, type: "Recommended")
     }
     
     func GetRecentExperiences() {
         let urlString = "\(url)/experiences"
-        performRequest(with: urlString)
+        performRequest(with: urlString, type: "recent")
     }
     
+    func GetSearchExperiences(searchText: String) {
+        let urlString = "\(url)/experiences?filter[title]={\(searchText)}"
+        performRequest(with: urlString, type: "Recommended")
+    }
     
-    func performRequest(with urlString: String) {
+    func GetSingleExperience(id: String) {
+        let urlString = "\(url)/experiences/{\(id)}"
+        performRequest(with: urlString, type: "singleExperience")
+    }
+    
+    func performRequest(with urlString: String, type: String) {
         if let url = URL(string: urlString) {
             let session = URLSession(configuration: .default)
             let task = session.dataTask(with: url) { (data, response, error) in
@@ -38,33 +52,71 @@ struct DataManager {
                     return
                 }
                 if let safeData = data {
-                    if let data = self.parseJSON(safeData) {
-                        self.delegate?.didUpdate(self, data: data)
+                    if type == "Recommended" {
+                        if let data = self.parseJSON(safeData) {
+                            self.delegate?.didUpdateReco(self, data: data)
+                        }
+                    } else if type == "recent"{
+                        if let data = self.parseJSON(safeData) {
+                            self.delegate?.didUpdateRecent(self, data: data)
+                        }
+                    } else {
+                        if let data = self.parseSingleExperience(safeData) {
+                            self.delegate?.didUpdateSingleEx(self, data: data)
+                        }
                     }
                 }
+                
+                    }
+                   task.resume()
+                }
+          
             }
-            task.resume()
-        }
+
+    
+    func postRequest(with urlString: String) {
+       
     }
     
-    func parseJSON(_ data: Data) -> [AroundData]? {
+    func parseJSON(_ aroundData: Data) -> [AroundData]? {
         let decoder = JSONDecoder()
-        var aroundData: [AroundData]!
+        var aroundDatax = [AroundData]()
         do {
-            let decodedData = try decoder.decode(DataModel.self, from: data)
-            
+            let decodedData = try decoder.decode(DataModel.self, from: aroundData)
             for i in 0...7 {
                 let id = decodedData.data[i].id
                 let title = decodedData.data[i].title
                 let likesCount = decodedData.data[i].likes_no
                 let coverPictureString = decodedData.data[i].cover_photo
+                let description = decodedData.data[i].description
                 
-                aroundData!.append(AroundData(id: id, title: title, cover_photo: coverPictureString, likes_no: likesCount))
-                print(aroundData![i].title)
+                let aroundData = AroundData(id: id, title: title, cover_photo: coverPictureString, likes_no: likesCount, description: description)
+                aroundDatax.append(aroundData)
             }
-            return aroundData
+            return aroundDatax
         } catch {
             delegate?.didFailWithError(error: error)
+            return nil
+        }
+    }
+    
+    
+    func parseSingleExperience(_ aroundData: Data) -> AroundData? {
+        let decoder = JSONDecoder()
+        do {
+            let decodedData = try decoder.decode(DataModel.self, from: aroundData)
+           
+                let id = decodedData.data[0].id
+                let title = decodedData.data[0].title
+                let likesCount = decodedData.data[0].likes_no
+                let coverPictureString = decodedData.data[0].cover_photo
+                let description = decodedData.data[0].description
+
+            let aroundData = AroundData(id: id, title: title, cover_photo: coverPictureString, likes_no: likesCount, description: description)
+
+            return aroundData
+        } catch {
+            print(error)
             return nil
         }
     }
