@@ -13,6 +13,7 @@ protocol DataManagerDelegate {
     func didUpdateSingleEx(_ DataManager: DataManager, data: AroundData)
     func didFailWithError(error: Error)
 }
+
 struct DataManager {
     
     let url = "https://aroundegypt.34ml.com/api/v2"
@@ -75,7 +76,16 @@ struct DataManager {
 
     
     func postRequest(with urlString: String) {
-       
+        
+        if let url = URL(string: urlString) {
+            
+            var request = URLRequest(url: url)
+            
+            request.httpMethod = "POST"
+            
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+        }
     }
     
     func parseJSON(_ aroundData: Data) -> [AroundData]? {

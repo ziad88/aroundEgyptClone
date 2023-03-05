@@ -30,7 +30,7 @@ class customCollectionViewCell: UICollectionViewCell {
     
     private let likeButton: UIButton = {
         let likeButton = UIButton()
-        likeButton.setImage(UIImage(systemName: "heart.fill"), for: .normal)
+        likeButton.setImage(UIImage(systemName: "heart"), for: .normal)
         likeButton.tintColor = .systemRed
         return likeButton
     }()
@@ -99,7 +99,7 @@ class customCollectionViewCell: UICollectionViewCell {
     }
     
     @objc func likeButtonPressed() {
-        
+        likeButton.setImage(UIImage(systemName: "heart.fill"), for: .normal)
     }
 }
 

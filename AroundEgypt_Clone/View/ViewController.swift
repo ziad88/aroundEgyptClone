@@ -8,15 +8,9 @@
 import UIKit
 import SwiftUI
 
-//class searchVC: UIViewController {
-//    override func viewDidLoad() {
-//        self.view.backgroundColor = .systemRed
-//    }
-//}
 
 class ViewController: UIViewController {
     
-    // let searchController = UISearchController(searchResultsController: searchVC())
     let searchBar = UISearchBar()
     let sideViewButton = UIButton()
     let costimizeButton = UIButton()
@@ -286,6 +280,7 @@ extension ViewController:UICollectionViewDelegate, UICollectionViewDataSource {
     }
 }
 
+
 //MARK: - DataManagerDelegate Method
 extension ViewController: DataManagerDelegate {
     func didUpdateSingleEx(_ DataManager: DataManager, data: AroundData) {
@@ -329,9 +324,5 @@ extension ViewController: DataManagerDelegate {
         print(error)
     }
     
-    
-}
-
-extension ViewController: UISearchBarDelegate {
     
 }
